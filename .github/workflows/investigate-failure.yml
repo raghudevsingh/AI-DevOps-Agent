@@ -1,0 +1,50 @@
+name: Investigate failed deployment
+
+# Change "Deploy" to the exact `name:` of your deployment workflow.
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  investigate:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: deployment-evidence
+          path: evidence
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+      - name: Download failed run logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gh run view "$RUN_ID" --repo "$GH_REPO" --log > evidence/deployment.log
+      - name: Build investigator image
+        run: docker build -t deployment-investigator .
+      - name: Generate investigation report
+        run: |
+          set -euo pipefail
+          mkdir -p report
+          set -- --logs /evidence/deployment.log --output /report/investigation.md
+          if [ -f evidence/k8s.txt ]; then
+            set -- "$@" --k8s /evidence/k8s.txt
+          fi
+          docker run --rm -v "$PWD/evidence:/evidence:ro" -v "$PWD/report:/report" \
+            deployment-investigator "$@"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deployment-investigation
+          path: report/investigation.md

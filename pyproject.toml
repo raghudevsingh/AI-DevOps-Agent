@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deployment-failure-investigator"
+version = "0.1.0"
+description = "Read-only diagnosis and fix suggestions for failed deployments"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
+
+[project.scripts]
+deployment-investigator = "deployment_investigator.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["deployment_investigator*"]
