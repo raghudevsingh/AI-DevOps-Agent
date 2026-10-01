@@ -96,7 +96,27 @@ The investigator downloads this optional artifact and includes it in its report 
 
 ## MCP integration
 
-MCP is not connected yet. The next extension is a read-only MCP tool adapter that gathers workflow logs and Kubernetes events, then passes that evidence to an analyzer. Keep tool access read-only and pass only the minimum log context needed.
+This project includes a local, read-only MCP server with two tools:
+
+- `analyze_deployment_evidence` analyzes log text and/or Kubernetes diagnostic text with the rules-based analyzer.
+- `collect_kubernetes_diagnostics` reads pod status and namespace events using `kubectl`. If you provide a pod name, it also reads that pod's description and the last 200 lines of current and previous container logs.
+
+The MCP server does not modify Kubernetes resources. It uses your current `kubectl` context, so check that `kubectl config current-context` points to the cluster you intend to inspect. Logs and pod descriptions can contain sensitive information; only share them with an MCP host you trust.
+
+Install the optional MCP dependency in the project environment:
+
+```cmd
+py -m pip install -e ".[mcp]"
+```
+
+Register a local stdio MCP server in your MCP host. Use the Python executable from this project's `.venv` and start it with `-m deployment_investigator.mcp_server`. For example, the server command and arguments are:
+
+```text
+Command: C:\Users\DELL\OneDrive\Documents\ChatGPT\AI DevOps Agent\.venv\Scripts\python.exe
+Arguments: -m deployment_investigator.mcp_server
+```
+
+After restarting the MCP host, ask it to collect diagnostics for a namespace (and optionally a pod), then ask it to analyze the returned evidence. The hosted GitHub Actions workflow remains a separate integration: it analyzes a failed GitHub run and optional uploaded Kubernetes evidence; MCP is for an MCP-compatible local assistant.
 
 ## Development
 

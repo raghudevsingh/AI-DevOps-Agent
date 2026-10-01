@@ -11,9 +11,11 @@ dependencies = []
 
 [project.optional-dependencies]
 openai = ["openai>=1.0.0"]
+mcp = ["mcp>=1.26,<2"]
 
 [project.scripts]
 deployment-investigator = "deployment_investigator.cli:main"
+deployment-investigator-mcp = "deployment_investigator.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["deployment_investigator*"]
