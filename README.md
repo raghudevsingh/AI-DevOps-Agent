@@ -70,7 +70,7 @@ docker run --rm -v "${PWD}:/work" deployment-investigator --logs /work/deploymen
 
 ## GitHub Actions integration
 
-`.github/workflows/investigate-failure.yml` listens for a failed workflow run named `Deploy`, downloads that run's logs, and uploads `investigation.md` as an artifact. Change `workflows: ["Deploy"]` to the exact `name:` of your deployment workflow before using it. The investigator workflow needs Actions read permission; it already requests only `actions: read` and `contents: read`.
+`.github/workflows/investigate-failure.yml` listens for a failed workflow run named `Deploy`, downloads that run's logs, and uploads `investigation.md` as an artifact. This repository includes `.github/workflows/demo-deploy.yml`, a manual-only demo that simulates an image pull failure so you can try the full workflow without deploying an application or changing a cluster. In GitHub, open **Actions**, select **Deploy**, and click **Run workflow**. The demo run intentionally fails; the investigator should then create a `deployment-investigation` artifact. For a real application, change `workflows: ["Deploy"]` to the exact `name:` of your deployment workflow. The investigator workflow needs Actions read permission; it already requests only `actions: read` and `contents: read`.
 
 To include Kubernetes diagnostics, add a step to the deployment workflow after the deploy step. It must run even when deployment fails and upload a file named `k8s.txt` in an artifact named `deployment-evidence`. For example, after configuring `kubectl` and setting `K8S_NAMESPACE` in that workflow:
 

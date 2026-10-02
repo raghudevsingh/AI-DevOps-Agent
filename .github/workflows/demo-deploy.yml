@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Simulated deployment failure scenario
+        type: choice
+        options:
+          - image-pull
+        default: image-pull
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  simulate-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate an image pull failure
+        run: |
+          echo "Starting demo deployment"
+          echo "Warning: Failed to pull image nginx:does-not-exist"
+          echo "Reason: ErrImagePull"
+          echo "Reason: ImagePullBackOff"
+          echo "Demo only: no cluster or deployment was changed."
+          exit 1
