@@ -89,6 +89,24 @@ def collect_kubernetes_diagnostics(namespace: str = "default", pod_name: str = "
     return result
 
 
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True))
+def investigate_kubernetes_failure(namespace: str = "default", pod_name: str = "") -> str:
+    """Collect Kubernetes diagnostics and immediately produce an advisory failure report."""
+    diagnostics = collect_kubernetes_diagnostics(namespace=namespace, pod_name=pod_name)
+    if (
+        "kubectl was not found" in diagnostics
+        or "Command failed (exit" in diagnostics
+        or "timed out after 25 seconds" in diagnostics
+    ):
+        return "Could not complete Kubernetes diagnostics collection. Check the kubectl output below.\n\n" + diagnostics
+    if "## Pods\nNo resources found" in diagnostics:
+        return (
+            "No workload pods were found in this namespace, so there is no pod failure to diagnose.\n\n"
+            + diagnostics
+        )
+    return render_report(RuleBasedAnalyzer().analyze("## Kubernetes diagnostics\n" + diagnostics))
+
+
 def main() -> None:
     """Run the MCP server over stdio for a local MCP host."""
     mcp.run(transport="stdio")

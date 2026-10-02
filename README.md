@@ -100,6 +100,7 @@ This project includes a local, read-only MCP server with two tools:
 
 - `analyze_deployment_evidence` analyzes log text and/or Kubernetes diagnostic text with the rules-based analyzer.
 - `collect_kubernetes_diagnostics` reads pod status and namespace events using `kubectl`. If you provide a pod name, it also reads that pod's description and the last 200 lines of current and previous container logs.
+- `investigate_kubernetes_failure` collects Kubernetes diagnostics and returns an advisory report in one call. Provide a namespace and optionally a pod name.
 
 The MCP server does not modify Kubernetes resources. It uses your current `kubectl` context, so check that `kubectl config current-context` points to the cluster you intend to inspect. Logs and pod descriptions can contain sensitive information; only share them with an MCP host you trust.
 
