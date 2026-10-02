@@ -44,7 +44,7 @@ def main() -> int:
     except Exception as exc:
         print(f"Analysis failed: {exc}", file=sys.stderr)
         return 2
-    report = render_report(findings)
+    report = render_report(findings, "\n".join(chunks))
     if args.output:
         try:
             args.output.write_text(report, encoding="utf-8")
