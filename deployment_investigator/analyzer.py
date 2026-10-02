@@ -93,8 +93,10 @@ class RuleBasedAnalyzer:
         return findings
 
 
-def render_report(findings: list[Finding]) -> str:
+def render_report(findings: list[Finding], evidence: str = "") -> str:
     sections = ["# Deployment Failure Investigation", "", "This report is advisory. No deployment or cluster changes were made."]
+    if "Demo only: no cluster or deployment was changed." in evidence:
+        sections.extend(["", "**Evidence source:** Simulated demo logs. This report does not describe a real cluster incident."])
     for finding in findings:
         sections.extend(["", f"## {finding.title}", "", f"**Likely cause:** {finding.cause}", f"**Confidence:** {finding.confidence}", "", "**Evidence:**"])
         sections.extend(f"- `{line.replace('`', chr(39))}`" for line in finding.evidence)
