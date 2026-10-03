@@ -115,7 +115,7 @@ The investigator downloads this optional artifact and includes it in its report 
 
 ## MCP integration
 
-This project includes a local, read-only MCP server with two tools:
+This project includes a local, read-only MCP server with three tools:
 
 - `analyze_deployment_evidence` analyzes log text and/or Kubernetes diagnostic text with the rules-based analyzer.
 - `collect_kubernetes_diagnostics` reads pod status and namespace events using `kubectl`. If you provide a pod name, it also reads that pod's description and the last 200 lines of current and previous container logs.
@@ -129,14 +129,20 @@ Install the optional MCP dependency in the project environment:
 py -m pip install -e ".[mcp]"
 ```
 
-Register a local stdio MCP server in your MCP host. Use the Python executable from this project's `.venv` and start it with `-m deployment_investigator.mcp_server`. For example, the server command and arguments are:
+Register a local stdio MCP server in your MCP host. The server command must point to the Python executable inside this project's virtual environment. From the project folder, get its full path in Windows Command Prompt with:
 
-```text
-Command: C:\Users\DELL\OneDrive\Documents\ChatGPT\AI DevOps Agent\.venv\Scripts\python.exe
-Arguments: -m deployment_investigator.mcp_server
+```cmd
+.venv\Scripts\python.exe -c "import sys; print(sys.executable)"
 ```
 
-After restarting the MCP host, ask it to collect diagnostics for a namespace (and optionally a pod), then ask it to analyze the returned evidence. The hosted GitHub Actions workflow remains a separate integration: it analyzes a failed GitHub run and optional uploaded Kubernetes evidence; MCP is for an MCP-compatible local assistant.
+Copy the printed path into your MCP host's server configuration as the command. Use these arguments:
+
+```text
+-m
+deployment_investigator.mcp_server
+```
+
+On macOS or Linux, the virtual-environment Python executable is `.venv/bin/python`; resolve its full path from the project folder with `python -c 'import sys; print(sys.executable)'`. MCP configuration formats differ between hosts, so follow your MCP host's instructions for adding a local stdio server. Restart that host, then try `analyze_deployment_evidence` with the included sample log. Use the Kubernetes tools only when `kubectl` is installed, configured, and connected to the cluster you intend to inspect. The hosted GitHub Actions workflow is separate: it analyzes a failed GitHub run and optional uploaded Kubernetes evidence; MCP is for an MCP-compatible local assistant.
 
 ## Development
 
