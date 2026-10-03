@@ -19,11 +19,24 @@ class Analyzer(Protocol):
 
 
 _ANSI_ESCAPE = re.compile(r"(?:\x1b\[|\^\[\[)[0-?]*[ -/]*[@-~]")
+_SECRET_ASSIGNMENT = re.compile(
+    r"(?i)\b([A-Za-z0-9_.-]*(?:password|passwd|token|secret|api[_-]?key|client[_-]?secret|access[_-]?key)[A-Za-z0-9_.-]*)(\s*[:=]\s*)(\"[^\"]*\"|'[^']*'|[^\s,;]+)"
+)
+_AUTHORIZATION = re.compile(r"(?i)(\bAuthorization\s*:\s*(?:Bearer|Basic)\s+)[A-Za-z0-9._~+/-]+=*")
+_KNOWN_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-(?:proj-)?[A-Za-z0-9_-]{20,})\b")
+_PRIVATE_KEY = re.compile(
+    r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----.*?-----END (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
+    re.DOTALL,
+)
 
 
 def clean_evidence(evidence: str) -> str:
-    """Remove ANSI terminal color/control sequences from captured logs."""
-    return _ANSI_ESCAPE.sub("", evidence)
+    """Remove terminal controls and redact common credentials from captured logs."""
+    evidence = _ANSI_ESCAPE.sub("", evidence)
+    evidence = _PRIVATE_KEY.sub("[REDACTED PRIVATE KEY]", evidence)
+    evidence = _AUTHORIZATION.sub(r"\1[REDACTED]", evidence)
+    evidence = _SECRET_ASSIGNMENT.sub(r"\1\2[REDACTED]", evidence)
+    return _KNOWN_TOKEN.sub("[REDACTED TOKEN]", evidence)
 
 
 _RULES: tuple[tuple[str, str, tuple[str, ...], tuple[str, ...]], ...] = (

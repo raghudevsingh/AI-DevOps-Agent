@@ -11,6 +11,8 @@ A read-only starter project that turns GitHub Actions and Kubernetes failure evi
 
 By default it uses explainable local rules and needs no credentials. Pass `--ollama` to use a local Ollama model without sending logs to a cloud API, or `--ai` to use OpenAI's API. All modes are read-only: they never apply fixes or change a cluster.
 
+The tool removes common secret patterns (such as password, token, API key, authorization header, and private-key values) before analysis and from report evidence. Redaction is best effort, not a guarantee. Review logs yourself and remove sensitive data before sharing reports or sending evidence to any AI service.
+
 ## Quick start (Windows Command Prompt)
 
 You only need Python 3.11 or newer for this first run. Docker, Kubernetes, an API key, and Ollama are not required. The default analyzer uses local rules.

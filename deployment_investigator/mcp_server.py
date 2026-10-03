@@ -8,7 +8,7 @@ import subprocess
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
-from .analyzer import RuleBasedAnalyzer, render_report
+from .analyzer import RuleBasedAnalyzer, clean_evidence, render_report
 
 
 mcp = FastMCP("Deployment Failure Investigator")
@@ -32,7 +32,7 @@ def analyze_deployment_evidence(
         return "Provide deployment_logs or kubernetes_diagnostics to analyze."
     if len(evidence) > _MAX_EVIDENCE_CHARS:
         return f"Evidence is too large ({len(evidence)} characters). Limit it to {_MAX_EVIDENCE_CHARS} characters."
-    return render_report(RuleBasedAnalyzer().analyze(evidence))
+    return render_report(RuleBasedAnalyzer().analyze(evidence), evidence)
 
 
 def _valid_name(value: str, *, allow_dots: bool = False) -> bool:
@@ -59,8 +59,8 @@ def _kubectl(args: list[str]) -> str:
     output = result.stdout.strip()
     error = result.stderr.strip()
     if result.returncode:
-        return f"Command failed (exit {result.returncode}).\n{error or output}"
-    return output or (error if error else "(no output)")
+        return clean_evidence(f"Command failed (exit {result.returncode}).\n{error or output}")
+    return clean_evidence(output or (error if error else "(no output)"))
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True))
@@ -104,7 +104,8 @@ def investigate_kubernetes_failure(namespace: str = "default", pod_name: str = "
             "No workload pods were found in this namespace, so there is no pod failure to diagnose.\n\n"
             + diagnostics
         )
-    return render_report(RuleBasedAnalyzer().analyze("## Kubernetes diagnostics\n" + diagnostics))
+    evidence = "## Kubernetes diagnostics\n" + diagnostics
+    return render_report(RuleBasedAnalyzer().analyze(evidence), evidence)
 
 
 def main() -> None:

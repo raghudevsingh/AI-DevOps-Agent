@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .analyzer import RuleBasedAnalyzer, render_report
+from .analyzer import RuleBasedAnalyzer, clean_evidence, render_report
 from .openai_analyzer import OpenAIAnalyzer
 from .ollama_analyzer import OllamaAnalyzer
 
@@ -33,6 +33,7 @@ def main() -> int:
                 parser.error(f"cannot read {path}: {exc}")
     if args.stdin:
         chunks.append(f"## Input evidence\n{sys.stdin.read()}")
+    evidence = clean_evidence("\n".join(chunks))
     if args.ai:
         analyzer = OpenAIAnalyzer(model=args.model)
     elif args.ollama:
@@ -40,11 +41,11 @@ def main() -> int:
     else:
         analyzer = RuleBasedAnalyzer()
     try:
-        findings = analyzer.analyze("\n".join(chunks))
+        findings = analyzer.analyze(evidence)
     except Exception as exc:
         print(f"Analysis failed: {exc}", file=sys.stderr)
         return 2
-    report = render_report(findings, "\n".join(chunks))
+    report = render_report(findings, evidence)
     if args.output:
         try:
             args.output.write_text(report, encoding="utf-8")
