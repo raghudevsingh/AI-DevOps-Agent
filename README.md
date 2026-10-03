@@ -11,16 +11,35 @@ A read-only starter project that turns GitHub Actions and Kubernetes failure evi
 
 By default it uses explainable local rules and needs no credentials. Pass `--ollama` to use a local Ollama model without sending logs to a cloud API, or `--ai` to use OpenAI's API. All modes are read-only: they never apply fixes or change a cluster.
 
-## Quick start
+## Quick start (Windows Command Prompt)
 
-```bash
-python -m deployment_investigator --logs deployment.log --k8s kubernetes.txt --output report.md
+You only need Python 3.11 or newer for this first run. Docker, Kubernetes, an API key, and Ollama are not required. The default analyzer uses local rules.
+
+Open Command Prompt and enter these commands one at a time:
+
+```cmd
+git clone https://github.com/raghudevsingh/AI-DevOps-Agent.git
+cd AI-DevOps-Agent
+py -m venv .venv
+.venv\Scripts\activate
+py -m pip install --upgrade pip
+py -m pip install .
+py -m deployment_investigator --logs examples\image-pull-failure.log --output report.md
+notepad report.md
 ```
 
-Either `--logs` or `--k8s` may be omitted, but at least one is required. Use `--stdin` to read combined evidence from standard input.
+The included example is clearly labeled as simulated. You can run it without a cluster or credentials and see the generated Markdown report. For real evidence, replace the example path with a text file containing deployment logs, or pass Kubernetes diagnostics with `--k8s`:
 
-```bash
-cat deployment.log | python -m deployment_investigator --stdin
+```cmd
+py -m deployment_investigator --logs deployment.log --k8s kubernetes.txt --output report.md
+```
+
+At least one of `--logs`, `--k8s`, or `--stdin` is required. On macOS or Linux, create and activate the virtual environment with `python3 -m venv .venv` and `source .venv/bin/activate`, then install with `python3 -m pip install .`.
+
+Use `--stdin` to read combined evidence from a pipe. In Windows Command Prompt, for example:
+
+```cmd
+type deployment.log | py -m deployment_investigator --stdin
 ```
 
 ## OpenAI analysis

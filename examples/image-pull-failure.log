@@ -1,0 +1,5 @@
+SIMULATED EXAMPLE - This is not output from a real Kubernetes cluster.
+Warning  Failed  2m  kubelet  Failed to pull image "nginx:does-not-exist": manifest unknown
+Warning  Failed  1m  kubelet  Error: ErrImagePull
+Warning  Failed  30s kubelet  Error: ImagePullBackOff
+Demo only: no cluster or deployment was changed.
