@@ -1,5 +1,6 @@
 """Explainable baseline analyzer; replace or extend behind this interface."""
 
+import re
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -15,6 +16,14 @@ class Finding:
 
 class Analyzer(Protocol):
     def analyze(self, evidence: str) -> list[Finding]: ...
+
+
+_ANSI_ESCAPE = re.compile(r"(?:\x1b\[|\^\[\[)[0-?]*[ -/]*[@-~]")
+
+
+def clean_evidence(evidence: str) -> str:
+    """Remove ANSI terminal color/control sequences from captured logs."""
+    return _ANSI_ESCAPE.sub("", evidence)
 
 
 _RULES: tuple[tuple[str, str, tuple[str, ...], tuple[str, ...]], ...] = (
@@ -67,8 +76,7 @@ class RuleBasedAnalyzer:
     """Find known failure signatures while retaining the matching log evidence."""
 
     def analyze(self, evidence: str) -> list[Finding]:
-        import re
-
+        evidence = clean_evidence(evidence)
         lines = evidence.splitlines()
         findings: list[Finding] = []
         normalized_rules = [(title, cause, patterns, suggestions) for title, cause, patterns, suggestions in _RULES]
@@ -94,6 +102,17 @@ class RuleBasedAnalyzer:
 
 
 def render_report(findings: list[Finding], evidence: str = "") -> str:
+    evidence = clean_evidence(evidence)
+    findings = [
+        Finding(
+            title=clean_evidence(finding.title),
+            cause=clean_evidence(finding.cause),
+            evidence=tuple(clean_evidence(line) for line in finding.evidence),
+            suggestions=tuple(clean_evidence(line) for line in finding.suggestions),
+            confidence=finding.confidence,
+        )
+        for finding in findings
+    ]
     sections = ["# Deployment Failure Investigation", "", "This report is advisory. No deployment or cluster changes were made."]
     if "Demo only: no cluster or deployment was changed." in evidence:
         sections.extend(["", "**Evidence source:** Simulated demo logs. This report does not describe a real cluster incident."])
